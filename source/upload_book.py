@@ -1,9 +1,10 @@
 import os
 import yaml
 import argparse
+import re
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_ollama import OllamaEmbeddings
 
 
@@ -29,31 +30,68 @@ def load_embedding_model(config):
     embeddings = OllamaEmbeddings(model="mxbai-embed-large")
     return embeddings
 
-
-def read_config():
-    with open("config.yaml", "r") as f:
+def read_config(name=''):
+    if name == '':
+        name = "config.yaml"
+    with open(f"{name}", "r") as f:
         config = yaml.load(f,Loader=yaml.Loader)
     
     return config
+
+def save_info(info_dict, filename=''):
+    
+    if filename=='':
+        filename="input_config"
+    
+        
+    with open(f"{filename}.yaml") as f:
+        config = yaml.safe_load(f)
+
+    for key,val in info_dict.items():
+        config[f'{key}'] = val
+
+    with open(f"{filename}.yaml", "w") as f:
+        yaml.dump(config, f)
+    
+    print('\n---config file updated---')
+
+def clean_name(name):
+    name = name.replace(" ", "")
+    name = re.sub("[^a-zA-Z]+", "", name)
+    name = name.lower()
+
+    return name
 
 def main(book, author):
     curr_dir = os.getcwd()
     os.chdir(curr_dir)
 
     config = read_config()
-    path = f"../data/{book}by{author}.pdf"
-    persistent_directory = f"../chroma_db/{book}by{author}"
+    book_clean, author_clean = clean_name(book), clean_name(author)
+    print(book_clean, author_clean)
 
-    documet_exists = os.path.exists(persistent_directory)
-    if not documet_exists:
+    path = f"../data/{book_clean}by{author_clean}.pdf"
+    persistent_directory = f"../chroma_db/{book_clean}by{author_clean}"
+
+    document_exists = os.path.exists(persistent_directory)
+    if not document_exists:
         docs = read_pdf(path=path,config=config)
         embeddings = load_embedding_model(config=config)
 
-        db = Chroma.from_documents(docs, embedding_function=embeddings, persist_directory=persistent_directory)
+        db = Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
         print(f"\n---Done creating embedding for {book} by {author}---")
 
     else:
         print(f"\n---We already have embedding for {book} by {author} saved!---")
+
+    info_dict = {
+                        "book_clean":book_clean,
+                        "author_clean":author_clean,
+                        "book":book,
+                        "author":author
+                 }
+    
+    save_info(info_dict)
 
 
 if __name__ == "__main__":

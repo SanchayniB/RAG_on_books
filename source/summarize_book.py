@@ -1,7 +1,8 @@
 import os
 import yaml
 import argparse
-from langchain_community.vectorstores import Chroma
+import re
+from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain.chains.summarize import load_summarize_chain
 from langchain_mistralai.chat_models import ChatMistralAI
@@ -11,15 +12,17 @@ from pathlib import Path
 
 
 
-def read_config():
-    with open("config.yaml", "r") as f:
+def read_config(name=''):
+    if name == '':
+        name = "config.yaml"
+    with open(f"{name}", "r") as f:
         config = yaml.load(f,Loader=yaml.Loader)
     
     return config
 
 
 def load_embedding_model(config):
-    embeddings = OllamaEmbeddings(model=config['llm_model'])
+    embeddings = OllamaEmbeddings(model=config['llm_embedding_model'])
     return embeddings
 
 def call_model(config):
@@ -30,7 +33,7 @@ def call_model(config):
     os.environ["MISTRAL_API_KEY"] = MY_KEY
 
     llm_mistral = ChatMistralAI(
-                                    model="mistral-small-latest",
+                                    model=config['llm_chat_model'],
                                     temperature=0
                                 )
     return llm_mistral 
@@ -52,27 +55,22 @@ def get_summary(persistent_directory,config):
     result = summarize_chain.invoke(docs)
     print(result['output_text'])
 
-
-def main(book, author):
+def main():
     curr_dir = os.getcwd()
     os.chdir(curr_dir)
 
     config = read_config()
-    persistent_directory = f"../chroma_db/{book}by{author}"
+    input_config = read_config(name='input_config.yaml')
+    book_clean, author_clean = input_config['book_clean'], input_config['author_clean'] 
+    book, author = input_config['book'], input_config['author'] 
 
+    persistent_directory = f"../chroma_db/{book_clean}by{author_clean}"
+
+    print(f"\n-------------{book} by {author}-----------")
     get_summary(persistent_directory=persistent_directory,config=config)
 
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--book", dest='book', type=str, help="Name of the book")
-    parser.add_argument("--author", dest='author', type=str, help="Author of the book")
-    args = parser.parse_args()
-
-    print("\n--- Selected Book ---")
-    print("Book:", args.book)
-    print("By Author:", args.author)
-
-    main(book=args.book, author=args.author)
+    main()
