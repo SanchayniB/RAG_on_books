@@ -53,7 +53,9 @@ def get_summary(persistent_directory,config):
     llm_mistral=call_model(config)
     summarize_chain = load_summarize_chain(llm=llm_mistral, chain_type="stuff",verbose=True)
     result = summarize_chain.invoke(docs)
-    print(result['output_text'])
+   
+    # print(result['output_text'])
+    return result['output_text']
 
 def main():
     curr_dir = os.getcwd()
@@ -66,8 +68,9 @@ def main():
 
     persistent_directory = f"../chroma_db/{book_clean}by{author_clean}"
 
-    print(f"\n-------------{book} by {author}-----------")
-    get_summary(persistent_directory=persistent_directory,config=config)
+    #print(f"\n-------------{book} by {author}-----------")
+    result = get_summary(persistent_directory=persistent_directory,config=config)
+    return result
 
 
 

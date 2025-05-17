@@ -88,7 +88,7 @@ def main():
     llm_mistral=call_model(config)
     
     while True:
-        print("\n\n-------------------------------")
+        #print("\n\n-------------------------------")
         question = input("Ask your question (q to quit): ")
         if question == "q":
             break
@@ -103,7 +103,8 @@ def main():
         
         # Invoke the model with the combined input
         result = llm_mistral.invoke(messages)
-        print(f'Answer: {result.content}')
+        #print(f'Answer: {result.content}')
+        #return result.content
 
 if __name__ == "__main__":
     main()
