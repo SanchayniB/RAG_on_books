@@ -7,12 +7,13 @@ import qa_session
 from langchain_chroma import Chroma
 from langchain_core.messages import HumanMessage
 from langchain_core.messages import SystemMessage
+import base64
 
 
 # Streamlit UI
 st.set_page_config(page_title="Book Q&A", layout="wide")
+# Set title
 st.title("✍️📖💬 Ask the Author")
-
 # Get some info
 st.subheader("📤 Upload your book")
 
@@ -117,7 +118,9 @@ if st.session_state.get("summary_status"):
         combined_query = qa_session.rag_augment(user_question, relevant_docs)
 
         messages = [
-                        SystemMessage(content="You are a helpful assistant who is expert at translating books into understandable language"),
+                        SystemMessage(content=
+                                                "You are a helpful assistant who is expert at translating fictional/ no fictional books into understandable language." \
+                                                "Please provide your answer within 4-5 lines at max. Be concise yet informative."),
                         HumanMessage(content=combined_query),
                     ]
         result = st.session_state.llm.invoke(messages)

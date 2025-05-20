@@ -97,7 +97,9 @@ def main():
         combined_query = rag_augment(question, relevant_docs)
 
         messages = [
-                        SystemMessage(content="You are a helpful assistant who is expert at translating history books into understandable language."),
+                        SystemMessage(content=
+                                                "You are a helpful assistant who is expert at translating fictional/ no fictional books into understandable language." \
+                                                "Please provide your answer within 4-5 lines at max. Be concise yet informative."),
                         HumanMessage(content=combined_query),
                     ]
         
